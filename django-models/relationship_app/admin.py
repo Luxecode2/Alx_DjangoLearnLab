@@ -1,10 +1,9 @@
 from django.contrib import admin
+from .models import Author, Book, Library, Librarian, UserProfile
 
-# Register your models here.
-from django.contrib import admin
-from .models import Author, Book, Library, Librarian
-
+# Register models
 admin.site.register(Author)
 admin.site.register(Book)
 admin.site.register(Library)
 admin.site.register(Librarian)
+admin.site.register(UserProfile)  # include UserProfile to manage roles via admin
