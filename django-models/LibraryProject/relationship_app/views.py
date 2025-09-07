@@ -10,6 +10,36 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import DetailView
 from .models import Book, Library  # <-- ALX expects Library to be imported
 from .models import Author, Book, Library, Librarian, UserProfile
+from django.contrib.auth.decorators import permission_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import permission_required
+from .models import Book
+
+# Add Book
+@permission_required('relationship_app.can_add_book')
+def add_book_view(request):
+    if request.method == 'POST':
+        # handle form submission
+        pass
+    return render(request, 'relationship_app/add_book.html')
+
+# Edit Book
+@permission_required('relationship_app.can_change_book')
+def edit_book_view(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        # handle form submission
+        pass
+    return render(request, 'relationship_app/edit_book.html', {'book': book})
+
+# Delete Book
+@permission_required('relationship_app.can_delete_book')
+def delete_book_view(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        book.delete()
+        return redirect('book_list')
+    return render(request, 'relationship_app/delete_book.html', {'book': book})
 
 # -----------------------
 # Function-based view
