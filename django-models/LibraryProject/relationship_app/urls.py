@@ -1,8 +1,24 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from . import views
+from .views import (
+    add_book_view,
+    edit_book_view,
+    delete_book_view,
+    list_books,
+    LibraryDetailView
+)
 
 urlpatterns = [
+
+    path('add_book/', add_book_view, name='add_book'),
+    path('edit_book/<int:book_id>/', edit_book_view, name='edit_book'),
+    path('delete_book/<int:book_id>/', delete_book_view, name='delete_book'),
+    path('books/', list_books, name='list_books'),
+
+    # Class-based view
+    path('library/<int:pk>/', LibraryDetailView.as_view(), name='library_detail'),
+
     
     path('add_book/', views.add_book_view, name='add_book'),
     path('edit_book/<int:book_id>/', views.edit_book_view, name='edit_book'),
