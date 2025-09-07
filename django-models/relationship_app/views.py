@@ -5,6 +5,8 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.views.generic.detail import DetailView
 from .models import Book, Library, UserProfile, Author
+from relationship_app.models import Author, Book, Library, Librarian
+
 
 # -------------------------------
 # Authentication Views
