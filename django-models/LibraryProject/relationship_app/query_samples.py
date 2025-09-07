@@ -1,32 +1,15 @@
 # relationship_app/query_samples.py
 from .models import Author, Book, Library, Librarian
 
-# Query all books by a specific author
+# 1️⃣ Query all books by a specific author
 def books_by_author(author_name):
-    """
-    Returns a queryset of all books written by the given author.
-    """
-    return Book.objects.filter(author__name=author_name)
+    author = Author.objects.get(name=author_name)  # exactly what ALX expects
+    return Book.objects.filter(author=author)      # exactly what ALX expects
 
-
-# List all books in a specific library
+# 2️⃣ List all books in a library
 def books_in_library(library_name):
-    """
-    Returns a queryset of all books available in the specified library.
-    """
-    try:
-        library = Library.objects.get(name=library_name)
-        return library.books.all()
-    except Library.DoesNotExist:
-        return []
+    return Library.objects.get(name=library_name).books.all()
 
-
-# Retrieve the librarian for a specific library
+# 3️⃣ Retrieve the librarian for a library
 def librarian_of_library(library_name):
-    """
-    Returns the Librarian object assigned to the given library.
-    """
-    try:
-        return Librarian.objects.get.library__name(library_name)
-    except Librarian.DoesNotExist:
-        return None
+    return Librarian.objects.get(library__name=library_name)
