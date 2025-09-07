@@ -18,13 +18,10 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
-
-# Signal to auto-create UserProfile
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    if created and not hasattr(instance, 'profile'):
+    if created:
         UserProfile.objects.create(user=instance)
-
 
 # -------------------------------
 # Author Model
@@ -34,7 +31,6 @@ class Author(models.Model):
 
     def __str__(self):
         return self.name
-
 
 # -------------------------------
 # Book Model with Custom Permissions
@@ -53,7 +49,6 @@ class Book(models.Model):
             ("can_delete_book", "Can delete book"),
         )
 
-
 # -------------------------------
 # Library Model
 # -------------------------------
@@ -63,7 +58,6 @@ class Library(models.Model):
 
     def __str__(self):
         return self.name
-
 
 # -------------------------------
 # Librarian Model

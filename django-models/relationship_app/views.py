@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.views.generic.detail import DetailView
-
 from .models import Book, Library, UserProfile, Author
 
 # -------------------------------
@@ -17,8 +16,6 @@ def register_view(request):
             form.save()
             messages.success(request, "Registration successful. You can now log in.")
             return redirect('login')
-        else:
-            messages.error(request, "Registration failed. Please correct the errors.")
     else:
         form = UserCreationForm()
     return render(request, 'relationship_app/register.html', {'form': form})
@@ -31,8 +28,6 @@ def login_view(request):
             login(request, user)
             messages.success(request, f"Welcome {user.username}!")
             return redirect('list_books')
-        else:
-            messages.error(request, "Invalid username or password.")
     else:
         form = AuthenticationForm()
     return render(request, 'relationship_app/login.html', {'form': form})
@@ -40,11 +35,11 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
-    return redirect('login')
+    return render(request, 'relationship_app/logout.html')
 
 
 # -------------------------------
-# Function-based view: List all books
+# List all books
 # -------------------------------
 @login_required
 def list_books(request):
@@ -53,7 +48,7 @@ def list_books(request):
 
 
 # -------------------------------
-# Class-based view: Library Detail
+# Library Detail View
 # -------------------------------
 class LibraryDetailView(DetailView):
     model = Library
@@ -62,37 +57,33 @@ class LibraryDetailView(DetailView):
 
 
 # -------------------------------
-# Role-Based Access Views
+# Role-Based Access
 # -------------------------------
 def is_admin(user):
-    return hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
+    return hasattr(user, 'profile') and user.profile.role == 'Admin'
 
 def is_librarian(user):
-    return hasattr(user, 'userprofile') and user.userprofile.role == 'Librarian'
+    return hasattr(user, 'profile') and user.profile.role == 'Librarian'
 
 def is_member(user):
-    return hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
+    return hasattr(user, 'profile') and user.profile.role == 'Member'
 
-@login_required
 @user_passes_test(is_admin)
 def admin_view(request):
     return render(request, 'relationship_app/admin_view.html')
 
-@login_required
 @user_passes_test(is_librarian)
 def librarian_view(request):
     return render(request, 'relationship_app/librarian_view.html')
 
-@login_required
 @user_passes_test(is_member)
 def member_view(request):
     return render(request, 'relationship_app/member_view.html')
 
 
 # -------------------------------
-# Book Management Views with Permissions
+# Book Management Views
 # -------------------------------
-@login_required
 @permission_required('relationship_app.can_add_book', raise_exception=True)
 def add_book(request):
     if request.method == 'POST':
@@ -105,7 +96,6 @@ def add_book(request):
     authors = Author.objects.all()
     return render(request, 'relationship_app/add_book.html', {'authors': authors})
 
-@login_required
 @permission_required('relationship_app.can_change_book', raise_exception=True)
 def edit_book(request, book_id):
     book = get_object_or_404(Book, id=book_id)
@@ -119,7 +109,6 @@ def edit_book(request, book_id):
     authors = Author.objects.all()
     return render(request, 'relationship_app/edit_book.html', {'book': book, 'authors': authors})
 
-@login_required
 @permission_required('relationship_app.can_delete_book', raise_exception=True)
 def delete_book(request, book_id):
     book = get_object_or_404(Book, id=book_id)
