@@ -1,6 +1,3 @@
-his file only contains the **retrieve step**:
-
-````markdown
 ```python
 from bookshelf.models import Book
 
@@ -9,4 +6,3 @@ all_books = Book.objects.all()
 print(all_books)
 # Output: <QuerySet [<Book: 1984 by George Orwell (1949)>]>
 ```
-````
