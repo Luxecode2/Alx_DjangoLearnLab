@@ -6,7 +6,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout, authenticate
 from django.shortcuts import redirect
-
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import DetailView
+from .models import Book, Library  # <-- ALX expects Library to be imported
 from .models import Author, Book, Library, Librarian, UserProfile
 
 # -----------------------
