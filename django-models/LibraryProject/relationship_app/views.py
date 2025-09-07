@@ -1,3 +1,4 @@
+from .models import Library, Book
 from django.shortcuts import render
 from django.views.generic import DetailView
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -14,6 +15,7 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from .models import Book
+
 
 # Add Book
 @permission_required('relationship_app.can_add_book')
