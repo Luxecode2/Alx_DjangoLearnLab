@@ -1,55 +1,34 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
-from . import views
 from .views import (
     add_book_view,
     edit_book_view,
     delete_book_view,
     list_books,
-    LibraryDetailView
+    LibraryDetailView,
+    admin_view,
+    librarian_view,
+    member_view,
+    register_view
 )
 
 urlpatterns = [
-
+    # Book CRUD views
     path('add_book/', add_book_view, name='add_book'),
     path('edit_book/<int:book_id>/', edit_book_view, name='edit_book'),
     path('delete_book/<int:book_id>/', delete_book_view, name='delete_book'),
     path('books/', list_books, name='list_books'),
 
-    # Class-based view
+    # Library detail view (class-based)
     path('library/<int:pk>/', LibraryDetailView.as_view(), name='library_detail'),
 
-    
-    path('add_book/', views.add_book_view, name='add_book'),
-    path('edit_book/<int:book_id>/', views.edit_book_view, name='edit_book'),
-    path('delete_book/<int:book_id>/', views.delete_book_view, name='delete_book'),
-
-    # Function-based and Class-based views
-    path('books/', views.list_books, name='list_books'),
-    path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
-
     # Role-based views
-    path('admin-view/', views.admin_view, name='admin_view'),
-    path('librarian-view/', views.librarian_view, name='librarian_view'),
-    path('member-view/', views.member_view, name='member_view'),
+    path('admin-view/', admin_view, name='admin_view'),
+    path('librarian-view/', librarian_view, name='librarian_view'),
+    path('member-view/', member_view, name='member_view'),
 
     # Authentication views
     path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
     path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
-    path('register/', views.register_view, name='register'),
-
-    
-    path('admin/', views.admin_view, name='admin_view'),
-    path('librarian/', views.librarian_view, name='librarian_view'),
-    path('member/', views.member_view, name='member_view'),
-
-    # Authentication
-    path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),
-    path('logout/', LogoutView.as_view(template_name='relationship_app/logout.html'), name='logout'),
-
-    # Books and Libraries views
-    path('books/', views.list_books, name='list_books'),
-    path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
+    path('register/', register_view, name='register'),
 ]
-
-
