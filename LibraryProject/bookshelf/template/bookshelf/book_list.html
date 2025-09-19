@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% if book %}Edit Book{% else %}Add New Book{% endif %}</title>
+  </head>
+  <body>
+    <h1>{% if book %}Edit Book{% else %}Add New Book{% endif %}</h1>
+    <form method="post">
+      {% csrf_token %} {# IMPORTANT: CSRF token for security #} {{ form.as_p }}
+      <button type="submit">Save</button>
+    </form>
+    <a href="{% url 'book_list' %}">Back to Book List</a>
+  </body>
+</html>
