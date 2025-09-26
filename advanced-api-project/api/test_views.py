@@ -1,16 +1,14 @@
-from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APITestCase
 from .models import Book
 
 
-class BookViewTests(TestCase):
+class BookViewTests(APITestCase):
     def setUp(self):
-        # Create a test user
+        # Create users
         self.user = User.objects.create_user(username="testuser", password="testpass")
-
-        # Create another user
         self.other_user = User.objects.create_user(username="otheruser", password="otherpass")
 
         # Create a book owned by testuser
@@ -62,7 +60,7 @@ class BookViewTests(TestCase):
             "description": "Updated description",
             "is_published": True,
         }
-        response = self.client.put(url, data, content_type="application/json")
+        response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.book.refresh_from_db()
         self.assertEqual(self.book.title, "Updated Test Book")
@@ -77,7 +75,7 @@ class BookViewTests(TestCase):
             "description": "This should fail",
             "is_published": True,
         }
-        response = self.client.put(url, data, content_type="application/json")
+        response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_book_delete_authenticated_owner(self):
