@@ -1,97 +1,61 @@
-from django.test import TestCase
-from django.contrib.auth.models import User
-from django.urls import reverse
-from rest_framework import status
+# api/views.py
+from rest_framework import generics, permissions
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from django_filters import rest_framework as filters  # ✅ for filtering
 from .models import Book
+from .serializers import BookSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
-class BookViewTests(TestCase):
-    def setUp(self):
-        # Create a test user
-        self.user = User.objects.create_user(username="testuser", password="testpass")
+# LIST VIEW (anyone can read, but only published books)
+class BookListView(generics.ListAPIView):
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.DjangoFilterBackend]  # ✅ enable filtering
+    filterset_fields = ["title", "publication_year", "author"]  # fields allowed for filtering
 
-        # Create another user
-        self.other_user = User.objects.create_user(username="otheruser", password="otherpass")
+    def get_queryset(self):
+        """
+        Only return published books.
+        """
+        return Book.objects.filter(is_published=True)
 
-        # Create a book owned by testuser
-        self.book = Book.objects.create(
-            title="Test Book",
-            author="Test Author",
-            description="A test book description",
-            owner=self.user,
-            is_published=True
-        )
 
-    def test_book_list_authenticated(self):
-        """Authenticated users can view book list"""
-        self.client.login(username="testuser", password="testpass")
-        response = self.client.get(reverse("book-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+# DETAIL VIEW (anyone can read)
+class BookDetailView(generics.RetrieveAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def test_book_create_authenticated(self):
-        """Authenticated user can create a book"""
-        self.client.login(username="testuser", password="testpass")
-        data = {
-            "title": "Another Test Book",
-            "author": "Another Author",
-            "description": "Another description",
-            "is_published": True,
-        }
-        response = self.client.post(reverse("book-list"), data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Book.objects.count(), 2)
 
-    def test_book_create_unauthenticated(self):
-        """Unauthenticated users cannot create a book"""
-        data = {
-            "title": "Unauthorized Book",
-            "author": "No Author",
-            "description": "Should not be created",
-            "is_published": True,
-        }
-        response = self.client.post(reverse("book-list"), data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+# CREATE VIEW (only authenticated users can create)
+class BookCreateView(generics.CreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthenticated]  # both styles
 
-    def test_book_update_authenticated_owner(self):
-        """Owner can update their book"""
-        self.client.login(username="testuser", password="testpass")
-        url = reverse("book-update", args=[self.book.pk])
-        data = {
-            "title": "Updated Test Book",
-            "author": "Updated Author",
-            "description": "Updated description",
-            "is_published": True,
-        }
-        response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.book.refresh_from_db()
-        self.assertEqual(self.book.title, "Updated Test Book")
+    def perform_create(self, serializer):
+        """
+        Attach the logged-in user as the owner of the book.
+        """
+        serializer.save(owner=self.request.user)
 
-    def test_book_update_authenticated_not_owner(self):
-        """Non-owner cannot update the book"""
-        self.client.login(username="otheruser", password="otherpass")
-        url = reverse("book-update", args=[self.book.pk])
-        data = {
-            "title": "Hacker Update",
-            "author": "Not Owner",
-            "description": "This should fail",
-            "is_published": True,
-        }
-        response = self.client.put(url, data, content_type="application/json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_book_delete_authenticated_owner(self):
-        """Owner can delete their book"""
-        self.client.login(username="testuser", password="testpass")
-        url = reverse("book-delete", args=[self.book.pk])
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Book.objects.count(), 0)
+# UPDATE VIEW (only owner can update)
+class BookUpdateView(generics.UpdateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthenticated, IsOwnerOrReadOnly]
 
-    def test_book_delete_authenticated_not_owner(self):
-        """Non-owner cannot delete the book"""
-        self.client.login(username="otheruser", password="otherpass")
-        url = reverse("book-delete", args=[self.book.pk])
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(Book.objects.count(), 1)
+    def perform_update(self, serializer):
+        """
+        Ensure additional validation logic can go here.
+        """
+        serializer.save()
+
+
+# DELETE VIEW (only owner can delete)
+class BookDeleteView(generics.DestroyAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthenticated, IsOwnerOrReadOnly]
