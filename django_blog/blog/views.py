@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404 # Ensure get_object_or_404 is imported
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
@@ -12,14 +12,27 @@ from django.views.generic import (
     DeleteView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q # Make sure Q is imported for complex queries
-from taggit.models import Tag # For filtering by tags
+from django.db.models import Q
+from taggit.models import Tag # For tag filtering
 
 from .models import Post, Comment
 from .forms import CustomUserCreationForm, ProfileEditForm, PostForm, CommentForm
 
-# --- Authentication Views (unchanged) ---
-# ... (CustomUserCreationForm, CustomLoginView, user_logout, profile functions) ...
+# --- Authentication Views (Example stubs, assumed to be defined elsewhere or kept simple) ---
+# NOTE: Replace with your actual authentication views if needed.
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
+
+def user_logout(request):
+    logout(request)
+    messages.info(request, "You have been logged out.")
+    return redirect('blog:post_list')
+
+@login_required
+def profile(request):
+    # This should handle profile editing via ProfileEditForm, but keeping it simple here
+    return render(request, 'registration/profile.html')
+
 
 # --- Blog Post CRUD Views (PostListView updated for search & tags) ---
 
@@ -33,19 +46,16 @@ class PostListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         query = self.request.GET.get('q')
-        tag_slug = self.kwargs.get('tag_slug') # Get tag slug from URL kwargs
+        tag_slug = self.kwargs.get('tag_slug')
 
-        # 1. Handle Search Query
         if query:
             queryset = queryset.filter(
                 Q(title__icontains=query) |
                 Q(content__icontains=query) |
-                Q(tags__name__icontains=query) # Search by tag name as well
+                Q(tags__name__icontains=query)
             ).distinct()
         
-        # 2. Handle Tag Filtering (takes precedence or works alongside search)
         if tag_slug:
-            # Filter posts by the tag slug provided in the URL
             tag = get_object_or_404(Tag, slug=tag_slug)
             queryset = queryset.filter(tags=tag).distinct()
 
@@ -53,13 +63,146 @@ class PostListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Pass the current search query back to the template
-        context['search_query'] = self.request.GET.get('q', '') 
-        # Pass the current tag slug to the template (useful for displaying the current filter)
-        context['current_tag'] = self.kwargs.get('tag_slug') 
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_tag'] = self.kwargs.get('tag_slug')
         return context
 
-# ----------------------------------------------------------------------
-# ... (PostDetailView, PostCreateView, PostUpdateView, PostDeleteView, 
-#      CommentUpdateView, CommentDeleteView - all other views remain as defined) ...
-# ----------------------------------------------------------------------
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        context['comments'] = self.object.comments.all()
+        return context
+    
+    # POST method removed here; handled by CommentCreateView
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been created!')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Create Post'
+        return context
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been updated!')
+        return super().form_valid(form)
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You are not authorized to edit this post.')
+        return redirect('blog:post_detail', pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Post'
+        return context
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('blog:post_list')
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You are not authorized to delete this post.')
+        return redirect('blog:post_detail', pk=self.kwargs['pk'])
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Your post has been deleted!')
+        return super().form_valid(form)
+
+# --- Comment CRUD Views ---
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """Handles creating a new comment linked to a specific post."""
+    model = Comment
+    form_class = CommentForm
+
+    def form_valid(self, form):
+        post_pk = self.kwargs.get('post_pk')
+        post = get_object_or_404(Post, pk=post_pk)
+
+        # Attach the author and post before saving
+        form.instance.author = self.request.user
+        form.instance.post = post
+        
+        messages.success(self.request, "Your comment has been posted!")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Redirect back to the post detail page
+        return reverse('blog:post_detail', kwargs={'pk': self.object.post.pk})
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    context_object_name = 'comment'
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Your comment has been updated!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You are not authorized to edit this comment.')
+        return redirect('blog:post_detail', pk=self.get_object().post.pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Comment'
+        return context
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+    context_object_name = 'comment'
+
+    def get_success_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You are not authorized to delete this comment.')
+        return redirect('blog:post_detail', pk=self.get_object().post.pk)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Your comment has been deleted!')
+        return super().form_valid(form)

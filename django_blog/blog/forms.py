@@ -1,12 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
-from .models import Post, Comment # Ensure Post and Comment are imported
+from .models import Post, Comment
 
-# =================
-#  User Forms
-# =================
-
+# --- User Forms ---
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text='Required. Enter a valid email address.')
     first_name = forms.CharField(max_length=30, required=False)
@@ -30,8 +27,6 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
-
-# ... (ProfileEditForm remains the same) ...
 
 class ProfileEditForm(UserChangeForm):
     class Meta:
@@ -58,26 +53,19 @@ class ProfileEditForm(UserChangeForm):
             raise forms.ValidationError("A user with that email already exists.")
         return email
 
-# =================
-#  Post/Comment Forms
-# =================
-
-# --- UPDATED Post Form to include tags ---
+# --- Post Form (Updated with tags) ---
 class PostForm(forms.ModelForm):
-    """Form for creating and editing blog posts, including tags."""
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags'] # <-- CRITICAL CHANGE: Added 'tags'
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
-            # Added a specific widget for tags for better styling/guidance
             'tags': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Python, Django, Web Dev'}),
         }
 
-# --- Existing Comment Form ---
+# --- Comment Form (New) ---
 class CommentForm(forms.ModelForm):
-    """Form for adding comments to a post."""
     class Meta:
         model = Comment
         fields = ['content']
