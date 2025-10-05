@@ -53,14 +53,27 @@ MIDDLEWARE = [
 ROOT_URLCONF = "django_blog.urls"
 
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'blog/static')]
+# Corrected STATIC_URL and STATICFILES_DIRS
+STATIC_URL = '/static/' # Define once
+
+# Add project-level static directory AND app-level static directory
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'), # For project-wide static files (e.g., style.css)
+    # os.path.join(BASE_DIR, 'blog/static'), # Keep this if you have static files directly in blog/static
+]
+# If you decide to put all blog-specific static files in 'blog/static', you can keep your original:
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'blog/static')]
+# However, for 'style.css' shared across the site, a project-level 'static' folder is more common.
 
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'blog/templates')],
+        # Corrected DIRS to include a project-level 'templates' directory
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'), # Project-level templates (e.g., base.html, registration/*.html)
+            os.path.join(BASE_DIR, 'blog/templates'), # App-specific templates
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,11 +132,20 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
+# The duplicate STATIC_URL definition is removed here
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGIN_REDIRECT_URL = 'blog:post_list' # URL to redirect after successful login
+LOGOUT_REDIRECT_URL = 'blog:post_list' # URL to redirect after logout (if not handled by your view)
+LOGIN_URL = 'blog:login' # URL for the login page, used by @login_required decorator
+
+# Media files (for user-uploaded content like profile pictures)
+# You'll need this if you implement the Profile model with an ImageField
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
