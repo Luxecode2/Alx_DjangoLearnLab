@@ -67,6 +67,7 @@ class PostForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+            # The instantiation MUST include TagWidget()
             'tags': TagWidget(attrs={'class': 'form-control', 'placeholder': 'e.g., Python, Django, Web Dev'}),
         }
 
