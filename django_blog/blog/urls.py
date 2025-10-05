@@ -7,8 +7,8 @@ from .views import (
     PostListView,
     PostDetailView,
     PostCreateView,
-    PostUpdateView,
-    PostDeleteView
+    PostUpdateView, # Ensure this is imported
+    PostDeleteView  # Ensure this is imported
 )
 from django.urls import reverse_lazy
 
@@ -19,7 +19,8 @@ urlpatterns = [
     path('', PostListView.as_view(), name='post_list'),
     path('post/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
     path('post/new/', PostCreateView.as_view(), name='new_post'),
-    path('post/<int:pk>/edit/', PostUpdateView.as_view(), name='post_edit'),
+    # CORRECTED: Changed 'edit/' to 'update/'
+    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_edit'), # The name 'post_edit' can remain if you want
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
 
 
