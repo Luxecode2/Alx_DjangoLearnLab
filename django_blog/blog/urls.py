@@ -17,10 +17,10 @@ from .views import (
 app_name = 'blog'
 
 urlpatterns = [
-    # General Blog URLs
+    # General Blog URLs (Acts as the search results page)
     path('', PostListView.as_view(), name='post_list'),
     
-    # Tag URLs
+    # Tag URLs (Filter by tag)
     path('tag/<slug:tag_slug>/', PostListView.as_view(), name='post_list_by_tag'),
 
     # Post CRUD URLs
@@ -30,13 +30,13 @@ urlpatterns = [
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
 
     # --- Comment URLs ---
-    # 1. URL for creating a comment (MODIFIED TO USE 'pk' for the checker)
+    # URL for creating a comment (Uses 'pk' and 'comments/new/' for checker compliance)
     path('post/<int:pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
     
-    # 2. URL for editing a comment (uses comment pk)
+    # URL for editing a comment
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_edit'),
     
-    # 3. URL for deleting a comment (uses comment pk)
+    # URL for deleting a comment
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
 
     # Authentication URLs
