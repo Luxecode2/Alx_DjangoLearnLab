@@ -9,39 +9,37 @@ from .views import (
     PostCreateView,
     PostUpdateView,
     PostDeleteView,
-    CommentCreateView, # Crucial addition for comment creation
+    CommentCreateView, 
     CommentUpdateView,
     CommentDeleteView,
-    # Assumed these are implemented elsewhere in views.py:
-    # register,
-    # profile,
 )
 
 app_name = 'blog'
 
 urlpatterns = [
-    # Blog Post URLs
+    # General Blog URLs
     path('', PostListView.as_view(), name='post_list'),
     
     # Tag URLs
-    path('tag/<slug:tag_slug>/', PostListView.as_view(), name='post_list_by_tag'), # Included Tag URL
+    path('tag/<slug:tag_slug>/', PostListView.as_view(), name='post_list_by_tag'),
 
+    # Post CRUD URLs
     path('post/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
-    path('post/new/', PostCreateView.as_view(), name='post_create'), # Changed name to 'post_create' for consistency
+    path('post/new/', PostCreateView.as_view(), name='post_create'),
     path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_edit'),
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
 
     # --- Comment URLs ---
-    # 1. URL for creating a comment (requires post_pk)
-    path('post/<int:post_pk>/comment/new/', CommentCreateView.as_view(), name='comment_create'),
+    # 1. URL for creating a comment (UPDATED to use 'comments/new/')
+    path('post/<int:post_pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
     
-    # 2. URL for editing a comment (requires comment pk)
+    # 2. URL for editing a comment (uses comment pk)
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_edit'),
     
-    # 3. URL for deleting a comment (requires comment pk)
+    # 3. URL for deleting a comment (uses comment pk)
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
 
-    # Authentication URLs
+    # Authentication URLs (Assuming these views exist in .views)
     path('register/', views.register, name='register'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', user_logout, name='user_logout'),
