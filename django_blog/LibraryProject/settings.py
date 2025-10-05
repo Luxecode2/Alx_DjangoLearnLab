@@ -58,14 +58,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "django_blog.wsgi.application"
 
 # Database
+D# django_blog/settings.py
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "your_database_name"),
-        "USER": os.getenv("DB_USER", "your_database_user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "your_password"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_db_name',
+        'USER': 'your_db_user',
+        'PASSWORD': 'your_db_password',
+        'HOST': 'localhost',
+        'PORT': '', # Leave empty for default or specify '5432'
     }
 }
 
