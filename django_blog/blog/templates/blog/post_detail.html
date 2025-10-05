@@ -7,10 +7,7 @@ block content %}
     post.updated_at != post.created_at %} (Last updated: {{
     post.updated_at|date:"F j, Y, H:i" }}) {% endif %}
   </p>
-  <div class="post-content">
-    {{ post.content|linebreaksbr }} {# Render newlines as <br />
-    tags #}
-  </div>
+  <div class="post-content">{{ post.content|linebreaksbr }}</div>
   {% if user.is_authenticated and user == post.author %}
   <div class="post-actions">
     <a href="{% url 'blog:post_edit' pk=post.pk %}" class="btn btn-primary"
@@ -21,6 +18,70 @@ block content %}
     >
   </div>
   {% endif %}
+
+  <hr />
+
+  {# New: Display Tags (from Part 2) #} {% if post.tags.all %}
+  <div class="post-tags">
+    <strong>Tags:</strong>
+    {% for tag in post.tags.all %}
+    <a href="{% url 'blog:posts_by_tag' tag_slug=tag.slug %}" class="tag-link"
+      >{{ tag.name }}</a
+    >{% if not forloop.last %}, {% endif %} {% endfor %}
+  </div>
+  <hr />
+  {% endif %} {# New: Comment Section #}
+  <section class="comments-section">
+    <h3>Comments ({{ comments.count }})</h3>
+
+    {# Comment Form #} {% if user.is_authenticated %}
+    <div class="comment-form-container">
+      <h4>Leave a Comment</h4>
+      <form method="post" action="{% url 'blog:post_detail' pk=post.pk %}">
+        {# Action posts to itself #} {% csrf_token %} {{ comment_form.as_p }}
+        <button type="submit" class="btn btn-success">Submit Comment</button>
+      </form>
+    </div>
+    <hr />
+    {% else %}
+    <p>
+      Please
+      <a href="{% url 'blog:login' %}?next={{ request.path }}">log in</a> to
+      leave a comment.
+    </p>
+    <hr />
+    {% endif %} {# Display Existing Comments #}
+    <div class="comment-list">
+      {% for comment in comments %}
+      <div class="comment-item">
+        <p class="comment-meta">
+          <strong>{{ comment.author.username }}</strong> on {{
+          comment.created_at|date:"F j, Y, H:i" }} {% if comment.updated_at !=
+          comment.created_at %}
+          <em>(edited)</em>
+          {% endif %}
+        </p>
+        <p class="comment-content">{{ comment.content|linebreaksbr }}</p>
+        {% if user.is_authenticated and user == comment.author %}
+        <div class="comment-actions">
+          <a
+            href="{% url 'blog:comment_edit' pk=comment.pk %}"
+            class="btn btn-sm btn-info"
+            >Edit</a
+          >
+          <a
+            href="{% url 'blog:comment_delete' pk=comment.pk %}"
+            class="btn btn-sm btn-warning"
+            >Delete</a
+          >
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p>No comments yet. Be the first to comment!</p>
+      {% endfor %}
+    </div>
+  </section>
 </article>
 <a href="{% url 'blog:post_list' %}" class="back-to-list"
   >&larr; Back to All Posts</a

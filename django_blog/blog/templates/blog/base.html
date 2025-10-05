@@ -13,7 +13,7 @@
         <nav>
             <a href="{% url 'blog:post_list' %}">Home</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'blog:new_post' %}">Create New Post</a> {# New link for creating posts #}
+                <a href="{% url 'blog:new_post' %}">Create New Post</a>
                 <a href="{% url 'blog:profile' %}">Profile</a>
                 <a href="{% url 'blog:user_logout' %}">Logout ({{ user.username }})</a>
             {% else %}
@@ -21,6 +21,12 @@
                 <a href="{% url 'blog:register' %}">Register</a>
             {% endif %}
         </nav>
+        <div class="search-bar">
+            <form action="{% url 'blog:post_list' %}" method="get">
+                <input type="text" name="q" placeholder="Search posts..." value="{{ search_query }}">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
     </header>
     <main>
         {% if messages %}
