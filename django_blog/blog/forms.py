@@ -1,32 +1,34 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Post # Import your Post model
 
-# Custom User Registration Form
+# --- Existing forms ---
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True, help_text='Required. Enter a valid email address.')
+    email = forms.EmailField(required=True)
 
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('email',)
 
-    def clean_email(self):
-        email = self.cleaned_data['email']
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with that email already exists.")
-        return email
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
 
-# Custom User Profile Edit Form
-class UserProfileEditForm(UserChangeForm):
+class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+        fields = ['username', 'email', 'first_name', 'last_name']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Remove password and groups/permissions fields as we'll handle these separately
-        del self.fields['password']
-        if 'groups' in self.fields:
-            del self.fields['groups']
-        if 'user_permissions' in self.fields:
-            del self.fields['user_permissions']
+# --- New Post Form ---
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content'] # Author will be set automatically in the view
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+        }

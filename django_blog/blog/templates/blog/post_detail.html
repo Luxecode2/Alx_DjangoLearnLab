@@ -1,0 +1,28 @@
+{% extends 'base.html' %} {% block title %}{{ post.title }}{% endblock %} {%
+block content %}
+<article class="post-detail">
+  <h2>{{ post.title }}</h2>
+  <p class="post-meta">
+    By {{ post.author.username }} on {{ post.created_at|date:"F j, Y" }} {% if
+    post.updated_at != post.created_at %} (Last updated: {{
+    post.updated_at|date:"F j, Y, H:i" }}) {% endif %}
+  </p>
+  <div class="post-content">
+    {{ post.content|linebreaksbr }} {# Render newlines as <br />
+    tags #}
+  </div>
+  {% if user.is_authenticated and user == post.author %}
+  <div class="post-actions">
+    <a href="{% url 'blog:post_edit' pk=post.pk %}" class="btn btn-primary"
+      >Edit Post</a
+    >
+    <a href="{% url 'blog:post_delete' pk=post.pk %}" class="btn btn-danger"
+      >Delete Post</a
+    >
+  </div>
+  {% endif %}
+</article>
+<a href="{% url 'blog:post_list' %}" class="back-to-list"
+  >&larr; Back to All Posts</a
+>
+{% endblock %}
