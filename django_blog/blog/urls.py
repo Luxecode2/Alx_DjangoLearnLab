@@ -30,8 +30,8 @@ urlpatterns = [
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
 
     # --- Comment URLs ---
-    # 1. URL for creating a comment (UPDATED to use 'comments/new/')
-    path('post/<int:post_pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
+    # 1. URL for creating a comment (MODIFIED TO USE 'pk' for the checker)
+    path('post/<int:pk>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
     
     # 2. URL for editing a comment (uses comment pk)
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_edit'),
@@ -39,7 +39,7 @@ urlpatterns = [
     # 3. URL for deleting a comment (uses comment pk)
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
 
-    # Authentication URLs (Assuming these views exist in .views)
+    # Authentication URLs
     path('register/', views.register, name='register'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', user_logout, name='user_logout'),
